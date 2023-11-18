@@ -1,4 +1,5 @@
 <?php
+use App\Models\Task;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -24,18 +25,33 @@ Route::view('/tasks/create', 'create')
 
 Route::get('/tasks', function() {
     return view('index', [
-        'tasks' => \App\Models\Task::query()->latest()->get()
+        'tasks' => Task::query()->latest()->get()
     ]);
 }) -> name('tasks.index');
 
 Route::get('/tasks/{id}', function ($id) {
     return view('show', [
-        'task' => \App\Models\Task::query()->findOrFail($id)
+        'task' => Task::query()->findOrFail($id)
     ]);
 }) -> name('tasks.show');
 
 Route::post('/tasks', function(Request $request){
-    dd($request->all());
+    $data = $request->validate([
+        'title' => 'required|max:255',
+        'description' => 'required',
+        'long_description' => 'required'
+    ]);
+
+    $task = new Task();
+
+    $task->title = $data['title'];
+    $task->description = $data['description'];
+    $task->long_description = $data['long_description'];
+
+    $task->save();
+
+    return redirect()->route('tasks.show', ['id' => $task->id]);
+
 })->name('tasks.store');
 
 // Route::get('/welcome/{name}', function ($name) {
